@@ -1,9 +1,22 @@
 ---
+
+- name: create user group
+  user:
+    name: "{{ couchpotato_user }}"
+    system: true
+    state: present
+
+- name: create user
+  user:
+    name: "{{ couchpotato_user }}"
+    group: "{{ couchpotato_user }}"
+    system: true
+    state: present
+
 - name: ensure the install dir is available
   file: path={{ couchpotato_install_dir }}
         state=directory
         owner={{ couchpotato_user }} group={{ couchpotato_user }} mode=755
-  sudo: yes
   tags: couchpotato
 
 - name: ensure the git repository is checked-out
@@ -16,14 +29,12 @@
   template: src=couchpotato.j2
             dest=/etc/default/couchpotato
             owner={{ couchpotato_user }} group={{ couchpotato_user }} mode=755
-  sudo: yes
   tags: couchpotato
 
 - name: ensure start-up script is configured for Debian systems
   file: src='{{ couchpotato_install_dir }}/init/ubuntu'
         dest=/etc/init.d/couchpotato
         state=link
-  sudo: yes
   when: ansible_os_family == 'Debian'
   tags: couchpotato
 
@@ -31,11 +42,9 @@
   file: src='{{ couchpotato_install_dir }}/init/fedora'
         dest=/etc/init.d/couchpotato
         state=link
-  sudo: yes
   when: ansible_os_family == 'RedHat'
   tags: couchpotato
 
 - name: ensure the couchpotato service is enabled at boot
-  service: name=couchpotato enabled=true
-  sudo: yes
+  service: name=couchpotato enabled=true state=started
   tags: couchpotato
